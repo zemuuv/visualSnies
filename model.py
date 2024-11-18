@@ -128,14 +128,7 @@ class Database:
             )
                             ''')
         self.conn.commit()
-
-    def insert_programa(self, df,columnas):
-        df = df[columnas].drop_duplicates()
-        df[columnas[0]] = df[columnas[0]].astype(int)
-        df.rename(columns={columnas[0]: 'ID', columnas[1]: 'NOMBRE'}, inplace=True)
-        df.to_sql('PROGRAMA', self.conn, if_exists='append', index=False)
-        self.conn.commit()
-    
+   
     def insert_departamento(self, df, columnas):
         df = df[columnas].drop_duplicates()
         df[columnas[0]] = df[columnas[0]].astype(int)    
@@ -143,11 +136,84 @@ class Database:
         df.to_sql('Dimension_Departamento', self.conn, if_exists='append', index=False)  
         self.conn.commit()
 
-    def insert_snies_fact(self, df,columnas):
-        df.rename(columns={columnas[0]: 'ID_INSTITUCION', columnas[1]: 'ID_PROGRAMA', columnas[2]: 'ID_AREA', columnas[3]: 'ID_SEXO', columnas[4]: 'ANIO', columnas[5]: 'SEMESTRE', columnas[6]: 'ADMITIDOS', columnas[7]: 'MATRICULADOS'}, inplace=True)
-        df.to_sql('SNIES_FACT', self.conn, if_exists='append', index=False)
+    def insert_acreditacion(self, df, columna_estado):
+        df = df[columna_estado].drop_duplicates()
+        df[columna_estado[0]] = df[columna_estado[0]].astype(int)
+        df.rename(columns={columnas[0]: 'ID_Acreditacion', columnas[1]: 'Nombre_Departamento'}, inplace=True)   
+        df.to_sql('Dimension_Acreditacion', self.conn, if_exists='append', index=False)
         self.conn.commit()
 
+    def insert_institucion(self, df, columna_nombre):
+        df = df[[columna_nombre]].drop_duplicates()
+        df.rename(columns={columna_nombre: 'Nombre_Institucion'}, inplace=True)
+        df.to_sql('Dimension_Institucion', self.conn, if_exists='append', index=False)
+        self.conn.commit()
+
+    def insert_metodologia(self, df, columna_tipo):
+        df = df[[columna_tipo]].drop_duplicates()
+        df.rename(columns={columna_tipo: 'Tipo_Metodologia'}, inplace=True)
+        df.to_sql('Dimension_Metodologia', self.conn, if_exists='append', index=False)
+        self.conn.commit()
+
+    def insert_programa_academico(self, df, columna_nombre):
+        df = df[[columna_nombre]].drop_duplicates()
+        df.rename(columns={columna_nombre: 'Nombre_Programa_Academico'}, inplace=True)
+        df.to_sql('Dimension_Programa_Academico', self.conn, if_exists='append', index=False)
+        self.conn.commit()
+    
+    def insert_sexo(self, df, columna_sexo):
+        df = df[[columna_sexo]].drop_duplicates()
+        df.rename(columns={columna_sexo: 'Sexo'}, inplace=True)
+        df.to_sql('Dimension_Sexo', self.conn, if_exists='append', index=False)
+        self.conn.commit()
+
+    def insert_formacion(self, df, columna_formacion):
+        df = df[[columna_formacion]].drop_duplicates()
+        df.rename(columns={columna_formacion: 'Formacion'}, inplace=True)
+        df.to_sql('Dimension_Formacion', self.conn, if_exists='append', index=False)
+        self.conn.commit()
+
+    def insert_graduados(self, df, columnas):
+        df = df[columnas].drop_duplicates()
+        df.rename(columns={
+            columnas[0]: 'Fecha_Graduacion',
+            columnas[1]: 'ID_Institucion',
+            columnas[2]: 'ID_Departamento',
+            columnas[3]: 'ID_Acreditacion'
+        }, inplace=True)
+        df.to_sql('Tabla_Graduados', self.conn, if_exists='append', index=False)
+        self.conn.commit()
+
+    def insert_admitidos(self, df, columnas):
+        df = df[columnas].drop_duplicates()
+        df.rename(columns={
+            columnas[0]: 'Fecha_Admitidos',
+            columnas[1]: 'ID_Institucion',
+            columnas[2]: 'ID_Metodologia'
+        }, inplace=True)
+        df.to_sql('Tabla_Admitidos', self.conn, if_exists='append', index=False)
+        self.conn.commit()
+
+    def insert_inscritos(self, df, columnas):
+        df = df[columnas].drop_duplicates()
+        df.rename(columns={
+            columnas[0]: 'Fecha_Inscripcion',
+            columnas[1]: 'ID_Sexo',
+            columnas[2]: 'ID_Formacion',
+            columnas[3]: 'ID_Programa_Academico'
+        }, inplace=True)
+        df.to_sql('Tabla_Inscritos', self.conn, if_exists='append', index=False)
+        self.conn.commit()
+    
+    def insert_matriculados(self, df, columnas):
+        df = df[columnas].drop_duplicates()
+        df.rename(columns={
+            columnas[0]: 'ID_Programa_Academico',
+            columnas[1]: 'ID_Institucion',
+            columnas[2]: 'ID_Año'
+        }, inplace=True)
+        df.to_sql('Tabla_Matriculados', self.conn, if_exists='append', index=False)
+        self.conn.commit()
 
 class Cargue:
 
