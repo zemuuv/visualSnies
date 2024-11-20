@@ -1,132 +1,105 @@
 import dash
-from dash import html, dcc, Input, Output, callback
+from dash import html, dcc
 import dash_bootstrap_components as dbc
 import sqlite3
 import pandas as pd
 import plotly.express as px
 
-#Conexion a la base de datos
-conn = sqlite3.connect('snies.db', check_same_thread=False)
+# Conexión a la base de datos
+conn = sqlite3.connect('baseDatos.db', check_same_thread=False)
 
-def programa_dropdown():
-    df_programa = pd.read_sql_query("SELECT * FROM PROGRAMA", conn)
-    options = [{"label": nombre, "value": id} for id, nombre in zip(df_programa["ID"], df_programa["NOMBRE"])]
-    # Agregar una opción adicional para 'Todas'
-    options.insert(0, {"label": "Todas", "value": 0})
-    return options
-
-def area_dropdown():
-    df_area = pd.read_sql_query("SELECT * FROM AREA", conn)
-    options = [{"label": nombre, "value": id} for id, nombre in zip(df_area["ID"], df_area["NOMBRE"])]
-     # Agregar una opción adicional para 'Todas'
-    options.insert(0, {"label": "Todas", "value": 0})
-    return options
-
-def grafico_barras(programa=0, area=0):
-    if programa == 0 and area == 0:
-        consulta = '''
-            SELECT
-            PROGRAMA.NOMBRE AS PROGRAMA,
-            SUM(SNIES_FACT.ADMITIDOS) AS ADMITIDOS,
-            SUM(SNIES_FACT.MATRICULADOS) AS MATRICULADOS
-            FROM SNIES_FACT
-            INNER JOIN PROGRAMA ON SNIES_FACT.ID_PROGRAMA = PROGRAMA.ID
-            GROUP BY PROGRAMA.NOMBRE
-        '''
-    elif programa != 0 and area == 0:
-        consulta = f'''
-            SELECT
-            PROGRAMA.NOMBRE AS PROGRAMA,
-            SUM(SNIES_FACT.ADMITIDOS) AS ADMITIDOS,
-            SUM(SNIES_FACT.MATRICULADOS) AS MATRICULADOS
-            FROM SNIES_FACT
-            INNER JOIN PROGRAMA ON SNIES_FACT.ID_PROGRAMA = PROGRAMA.ID
-            WHERE PROGRAMA.ID = {programa}
-            GROUP BY PROGRAMA.NOMBRE
-        '''
-    elif programa == 0 and area != 0:
-        consulta = f'''
-            SELECT
-            PROGRAMA.NOMBRE AS PROGRAMA,
-            SUM(SNIES_FACT.ADMITIDOS) AS ADMITIDOS,
-            SUM(SNIES_FACT.MATRICULADOS) AS MATRICULADOS
-            FROM SNIES_FACT
-            INNER JOIN PROGRAMA ON SNIES_FACT.ID_PROGRAMA = PROGRAMA.ID
-            WHERE SNIES_FACT.ID_AREA = {area}
-            GROUP BY PROGRAMA.NOMBRE
-        '''
-    else:
-        consulta = f'''
-            SELECT
-            PROGRAMA.NOMBRE AS PROGRAMA,
-            SUM(SNIES_FACT.ADMITIDOS) AS ADMITIDOS,
-            SUM(SNIES_FACT.MATRICULADOS) AS MATRICULADOS
-            FROM SNIES_FACT
-            INNER JOIN PROGRAMA ON SNIES_FACT.ID_PROGRAMA = PROGRAMA.ID
-            WHERE PROGRAMA.ID = {programa} AND SNIES_FACT.ID_AREA = {area}
-            GROUP BY PROGRAMA.NOMBRE
-        '''
-
-
-    df_snies_fact_matriculados = pd.read_sql_query(consulta, conn)
-
-    # Transformar los datos para Plotly
-    df_plot = df_snies_fact_matriculados.melt(id_vars=["PROGRAMA"], value_vars=["ADMITIDOS", "MATRICULADOS"],
-                                          var_name="Categoría", value_name="Total")
-
-    # Crear el gráfico de barras agrupadas con Plotly Express
+# Función para obtener y graficar los Inscritos por Sexo y Formación
+'''
+def grafico_inscritos_por_sexo_y_formacion():
+    # Consulta SQL para obtener los datos
+    consulta = 
+    SELECT
+        Dimension_Formacion.Formacion AS FORMACION,
+        Dimension_Sexo.Sexo AS SEXO,
+        COUNT(Tabla_Inscritos.ID_Inscritos) AS TOTAL
+    FROM Tabla_Inscritos
+    INNER JOIN  Tabla_Inscritos.ID_Formacion ON Dimension_Formacion= Dimension_Formacion.ID_Formacion
+    INNER JOIN  Tabla_Inscritos.ID_Sexo ON Dimension_Sexo = Dimension_Sexo.ID_Sexo
+    GROUP BY Dimension_Formacion.Formacion, Dimension_Sexo.Sexo;
+    
+    
+    # Cargar los datos en un DataFrame
+    df = pd.read_sql_query(consulta, conn)
+    print(df)  # Verifica que los datos están bien cargados
+    
+    # Crear gráfico de barras agrupadas con Plotly Express
     fig = px.bar(
-        df_plot, 
-        x="PROGRAMA", 
-        y="Total", 
-        color="Categoría", 
+        df,
+        x="FORMACION",
+        y="TOTAL",
+        color="SEXO",
         barmode="group",
-        title="Comparación de Admitidos y Matriculados por Programa",
-        labels={"Total": "Número de Estudiantes", "PROGRAMA": "Programa"}
+        title="Inscritos por Sexo y Tipo de Formación",
+        labels={"TOTAL": "Número de Inscritos", "FORMACION": "Tipo de Formación"}
     )
     return fig
 
+# Función para obtener y graficar los Admitidos por Metodología
+def grafico_admitidos_en_metodologia_a_distancia():
+    query_admitidos = """
+    SELECT M.Tipo_Metodologia, COUNT(A.ID) AS Admitidos
+    FROM Tabla_Admitidos A
+    JOIN Dimension_Metodologia M ON A.ID_Metodologia = M.ID_Metodologia
+    WHERE A.ID_Institucion = 2712
+    GROUP BY M.Tipo_Metodologia
+    """
+    
+    # Cargar los datos en un DataFrame
+    df_admitidos = pd.read_sql(query_admitidos, conn)
+    print(df_admitidos)  # Verifica que los datos están bien cargados
+    
+    # Crear gráfico de barras con Plotly Express
+    fig = px.bar(
+        df_admitidos,
+        x="Tipo_Metodologia",
+        y="Admitidos",
+        title="Admitidos por Metodología a Distancia",
+        labels={"Admitidos": "Número de Admitidos", "Tipo_Metodologia": "Tipo de Metodología"}
+    )
+    return fig
+'''
+# Función para obtener y graficar los Inscritos por Programa Académico
+def grafico_inscritos_por_programa():
+    query_inscritos = query = """
+    SELECT da.Nombre_Programa_Academico, SUM(i.ID_inscritos) AS total_inscritos
+    FROM dimension_Institucion di
+    JOIN dimension_academico da ON da.id_institucion = di.id_institucion
+    JOIN tabla_Inscritos i ON i.id_academica = da.id_academica
+    WHERE da.Nombre_Programa_Academico = 'INGENIERÍA DE SISTEMAS'
+    GROUP BY da.Nombre_Programa_Academico;
+    """
+    
+    # Cargar los datos en un DataFrame
+    df_inscritos = pd.read_sql(query_inscritos, conn)
+    print(df_inscritos)  # Verifica que los datos están bien cargados
+    
+    # Crear gráfico de barras con Plotly Express
+    fig = px.bar(df, x='Nombre_Programa_Academico', y='total_inscritos',
+                 title='Número de inscritos en el programa de Ingeniería',
+                 labels={'total_inscritos': 'Total Inscritos', 'Nombre_Programa_Academico': 'Programa Académico'})
+    
+    return fig
 
-
+# Crear la app Dash
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
+# Layout de la app
 app.layout = html.Div([
-    html.H1("Dashboard SNIES"),
+    html.H1("Dashboard SNIES", style={'textAlign': 'center'}),
     html.Hr(),
+    
     dbc.Row([
-        dbc.Col([
-            html.Label("Programa"),
-            dcc.Dropdown(
-                            id='programa_dropdown',
-                            options=programa_dropdown(),
-                            value=0
-                        )
-            ]),
-        dbc.Col([
-            html.Label("Area"),
-            dcc.Dropdown(
-                            id='area_dropdown',
-                            options=area_dropdown(),
-                            value=0
-                        )
-            ]),
-    ]),
-    html.Hr(),
-    dbc.Row([
-        dbc.Col([
-            dcc.Graph(id='grafico_barras', figure=grafico_barras())
-        ])
+        #dbc.Col([dcc.Graph(id='grafico_inscritos', figure=grafico_inscritos_por_sexo_y_formacion())]),
+        #dbc.Col([dcc.Graph(id='grafico_admitidos', figure=grafico_admitidos_en_metodologia_a_distancia())]),
+        dbc.Col([dcc.Graph(id='grafico_programa', figure=grafico_inscritos_por_programa())]),
     ])
 ])
 
-@app.callback(
-    Output(component_id='grafico_barras', component_property='figure'),
-    [Input(component_id= 'programa_dropdown', component_property='value'),
-    Input(component_id='area_dropdown', component_property='value')]
-)
-def update_graph(programa, area):
-    return grafico_barras(programa, area)
-
-
+# Ejecutar la app
 if __name__ == '__main__':
     app.run_server(debug=True)

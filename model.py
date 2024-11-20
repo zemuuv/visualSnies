@@ -1,6 +1,6 @@
 import sqlite3
 import pandas as pd
-
+import dash
 
 class Database:
     def __init__(self, nombre_base_datos):
@@ -220,7 +220,8 @@ class Database:
             columnas[1]: 'FECHA_INSCRIPCION',
             columnas[2]: 'ID_SEXO',
             columnas[3]: 'ID_FORMACION',
-            columnas[4]: 'ID_PROGRAMA_ACADEMICO'
+            columnas[4]: 'ID_PROGRAMA_ACADEMICO',
+            columnas[5]: 'Inscritos'
         }, inplace=True)
 
         # Insertar los datos en la base de datos en la tabla INSCRITOS_FACT
