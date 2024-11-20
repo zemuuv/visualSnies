@@ -26,7 +26,7 @@ df_inscritos_2023 = carga.cargue_archivo(nombre_archivo='Inscritos2023.xlsx',hoj
 
 
 
-'''
+
 #Cargue de departamentos
 columnas = ['CÓDIGO DEL DEPARTAMENTO (PROGRAMA)', 'DEPARTAMENTO DE OFERTA DEL PROGRAMA']
 base_datos.insert_departamento(df_graduados_2023,columnas)
@@ -55,6 +55,7 @@ base_datos.insert_sexo(df_graduados_2023,columnas_acreditacion)
 columnas_acreditacion = ['ID NIVEL DE FORMACIÓN', 'NIVEL DE FORMACIÓN']
 base_datos.insert_formacion(df_graduados_2023,columnas_acreditacion)
 
+##################################################################################################################################
 
 # Filtrar el DataFrame para que solo contenga las columnas necesarias de admitidos
 columnas_admitidos = ['CÓDIGO DE LA INSTITUCIÓN', 'ID MODALIDAD', 'ADMITIDOS', 'AÑO']
@@ -80,6 +81,8 @@ df_admitidos_2023.rename(columns={
 print(df_admitidos_2023)
 # Llamar a la función para insertar el DataFrame de admitidos
 base_datos.insert_snies_fact(df=df_admitidos_2023, columnas=df_admitidos_2023.columns)
+
+#############################################################################################################################
 
 # Filtrar el DataFrame para que contenga las columnas necesarias
 columnas_graduados = ['GRADUADOS', 'CÓDIGO DE LA INSTITUCIÓN', 'CÓDIGO DEL DEPARTAMENTO (PROGRAMA)', 'CÓDIGO SNIES DEL PROGRAMA', 'AÑO']
@@ -138,7 +141,7 @@ print(df_inscritos_2023)
 
 # Llamar a la función para insertar el DataFrame de inscritos
 base_datos.insert_inscritos_fact(df=df_inscritos_2023, columnas=df_inscritos_2023.columns)
-'''
+
 #########################################################################################################################
 
 # Filtrar el DataFrame para que contenga las columnas necesarias de matriculados

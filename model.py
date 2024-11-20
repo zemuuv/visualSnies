@@ -165,7 +165,7 @@ class Database:
         df = df[columnas].drop_duplicates()
         df[columnas[0]] = df[columnas[0]].astype(int)    
         df.rename(columns={columnas[0]: 'ID_Programa_Academico', columnas[1]: 'Nombre_Programa_Academico'}, inplace=True)   
-        df.to_sql('Dimension_Academico', self.conn, if_exists='append', index=False)  
+        df.to_sql('Dimension_Programa_Academico', self.conn, if_exists='append', index=False)  
         self.conn.commit()
     
     def insert_sexo(self, df, columnas):
@@ -185,10 +185,10 @@ class Database:
     def insert_snies_fact(self, df, columnas):
     # Renombrar las columnas para que coincidan con los nombres esperados en la base de datos
         df.rename(columns={
-            columnas[0]: 'ID_Admitidos',
-            columnas[1]: 'Fecha_Admitidos',
-            columnas[2]: 'ID_Institucion',
-            columnas[3]: 'ID_Metodologia'
+            columnas[2]: 'ID_Admitidos',
+            columnas[3]: 'Fecha_Admitidos',
+            columnas[0]: 'ID_Institucion',
+            columnas[1]: 'ID_Metodologia'
         }, inplace=True)
         
         # Insertar los datos en la base de datos en la tabla SNIES_FACT
@@ -201,10 +201,10 @@ class Database:
         # Renombrar las columnas para que coincidan con los nombres esperados en la base de datos
         df.rename(columns={
             columnas[0]: 'ID_GRADUADO',
-            columnas[1]: 'FECHA_GRADUACION',
-            columnas[2]: 'ID_INSTITUCION',
-            columnas[3]: 'ID_DEPARTAMENTO',
-            columnas[4]: 'ID_ACREDITACION',
+            columnas[4]: 'FECHA_GRADUACION',
+            columnas[1]: 'ID_INSTITUCION',
+            columnas[2]: 'ID_DEPARTAMENTO',
+            columnas[3]: 'ID_ACREDITACION',
         }, inplace=True)
 
         # Insertar los datos en la base de datos en la tabla de graduados
@@ -217,11 +217,10 @@ class Database:
     # Renombrar las columnas para que coincidan con los nombres esperados en la base de datos
         df.rename(columns={
             columnas[0]: 'ID_INSCRITOS',
-            columnas[1]: 'FECHA_INSCRIPCION',
-            columnas[2]: 'ID_SEXO',
-            columnas[3]: 'ID_FORMACION',
-            columnas[4]: 'ID_PROGRAMA_ACADEMICO',
-            columnas[5]: 'Inscritos'
+            columnas[4]: 'FECHA_INSCRIPCION',
+            columnas[1]: 'ID_SEXO',
+            columnas[2]: 'ID_FORMACION',
+            columnas[3]: 'ID_PROGRAMA_ACADEMICO'
         }, inplace=True)
 
         # Insertar los datos en la base de datos en la tabla INSCRITOS_FACT
