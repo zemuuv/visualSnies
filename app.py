@@ -8,10 +8,8 @@ import plotly.express as px
 # Conexión a la base de datos
 conn = sqlite3.connect('baseDatos.db', check_same_thread=False)
 
-# Función para obtener y graficar los Inscritos por Sexo y Formación
-
 def grafico_inscritos_por_sexo_y_formacion():
-    # Consulta SQL para obtener los datos
+  
     consulta = '''
     SELECT 
     ds.Sexo, 
@@ -26,11 +24,9 @@ def grafico_inscritos_por_sexo_y_formacion():
     GROUP BY 
     ds.Sexo, df.Formacion;
     '''
-    
-    # Cargar los datos en un DataFrame
+
     df = pd.read_sql_query(consulta, conn)
     
-    # Crear gráfico de barras agrupadas con Plotly Express
     fig = px.bar(
         df,
         x="Formacion",
@@ -42,7 +38,6 @@ def grafico_inscritos_por_sexo_y_formacion():
     )
     return fig
 
-# Función para obtener y graficar los Admitidos por Metodología
 def grafico_admitidos_en_metodologia_a_distancia():
     query_admitidos = """
     SELECT M.Tipo_Metodologia, COUNT(A.ID) AS Admitidos
@@ -52,10 +47,8 @@ def grafico_admitidos_en_metodologia_a_distancia():
     GROUP BY M.Tipo_Metodologia
     """
     
-    # Cargar los datos en un DataFrame
     df_admitidos = pd.read_sql(query_admitidos, conn)
     
-    # Crear gráfico de barras con Plotly Express
     fig = px.bar(
         df_admitidos,
         x="Tipo_Metodologia",
@@ -65,7 +58,6 @@ def grafico_admitidos_en_metodologia_a_distancia():
     )
     return fig
 
-# Función para obtener y graficar los Inscritos por Programa Académico
 def grafico_inscritos_por_programa():
     query_inscritos = query = """
     SELECT 
@@ -81,10 +73,8 @@ def grafico_inscritos_por_programa():
     dpa.Nombre_Programa_Academico;
     """
     
-    # Cargar los datos en un DataFrame
     df_inscritos = pd.read_sql(query_inscritos, conn)
     
-    # Crear gráfico de barras con Plotly Express
     fig = px.bar(df_inscritos, x='Programa_Academico', y='Total_Inscritos',
                  title='Número de inscritos en el programa de Ingeniería',
                  labels={'total_inscritos': 'Total Inscritos', 'Nombre_Programa_Academico': 'Programa Académico'})
@@ -92,7 +82,7 @@ def grafico_inscritos_por_programa():
     return fig
 
 def generar_grafico_pastel():
-    # Consulta SQL para obtener los datos
+
     query = """
     SELECT 
     dpa.Nombre_Programa_Academico AS Programa_Academico,
@@ -107,10 +97,8 @@ def generar_grafico_pastel():
     dpa.Nombre_Programa_Academico
     """
     
-    # Ejecutar la consulta SQL y cargar los datos en un DataFrame
     df = pd.read_sql(query, conn)
 
-    # Crear el gráfico de pastel usando Plotly Express
     fig = px.pie(df, 
                  names='Programa_Academico', 
                  values='Total_Matriculados', 
@@ -120,10 +108,50 @@ def generar_grafico_pastel():
     
     return fig
 
-# Crear la app Dash
+def grafico_graduados_por_programa():
+    query_graduados = '''
+    SELECT
+        g.ID_Graduado,
+        d.Estado_Acreditacion
+    FROM
+        Tabla_Graduados g
+    INNER JOIN
+        Dimension_Acreditacion d
+    ON
+        g.ID_Acreditacion = d.ID_Acreditacion
+    WHERE
+        d.Estado_Acreditacion = 'No';  -- Filtramos por los graduados no acreditados
+    '''
+    
+    df = pd.read_sql(query_graduados, conn)
+
+    # Verificar las columnas del DataFrame
+    print("Columnas del DataFrame:", df.columns)
+
+    if 'ID_graduado' in df.columns:
+        graduados_no_acreditados = df['ID_graduado'].count()
+    else:
+        print("La columna 'ID_graduado' no está presente en el DataFrame.")
+        graduados_no_acreditados = 0  # Si no existe, asignar 0 para evitar errores
+
+    graduados_por_programa = pd.DataFrame({
+        'Estado_Acreditacion': ['No Acreditado'],
+        'Total_Graduados': [graduados_no_acreditados]
+    })
+    
+    fig = px.bar(
+        graduados_por_programa,
+        x='Estado_Acreditacion',
+        y='Total_Graduados',
+        title='Número de Graduados con Programa No Acreditados',
+        labels={'Estado_Acreditacion': 'Estado de Acreditación', 'Total_Graduados': 'Cantidad de Graduados'},
+        color_discrete_sequence=['skyblue']
+    )
+    
+    return fig
+
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
-# Layout de la app
 app.layout = html.Div([
     html.H1("Dashboard SNIES", style={'textAlign': 'center'}),
     html.Hr(),
@@ -133,12 +161,13 @@ app.layout = html.Div([
         dbc.Col([dcc.Graph(id='grafico_programa', figure=grafico_inscritos_por_programa())]),
     ]),
     dbc.Row([
-        dbc.Col([dcc.Graph(figure=generar_grafico_pastel())]),
-        #dbc.Col([dcc.Graph(id='grafico_admitidos', figure=grafico_admitidos_en_metodologia_a_distancia())]),
-        #dbc.Col([dcc.Graph(id='grafico_programa', figure=grafico_inscritos_por_programa())]),
+        dbc.Col([dcc.Graph(figure=generar_grafico_pastel())])
+    ]),
+
+    dbc.Row([
+        dbc.Col([dcc.Graph(id='grafico_graduados', figure=grafico_graduados_por_programa())])
     ])
 ])
 
-# Ejecutar la app
 if __name__ == '__main__':
     app.run_server(debug=True)
